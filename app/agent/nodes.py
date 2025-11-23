@@ -6,29 +6,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def mode_detector(state: AgentState) -> dict:
-    last_message = state['messages'][-1].content.lower()
-    
-    code_review_keywords = [
-        "code review", "coding standard", "complies", "check function", 
-        "meets requirements", "review", "check", "compliance", 
-        "style guide", "violate"
-    ]
-    
-    if any(keyword in last_message for keyword in code_review_keywords):
-        mode = "code_review"
-    else:
-        mode = "general"
-        
-    logger.info(f"Detected mode: {mode}")
-    return {"mode": mode}
-
-def rag_decision(state: AgentState) -> dict:
-    # Simple logic: code_review always needs RAG, general might not but we'll enable it for now
-    # to be helpful with uploaded docs.
-    # In a more complex system, we could use an LLM call to decide.
-    return {} # Pass through, decision is implicit in graph edges or we just always retrieve if docs exist
-
 def retrieval(state: AgentState) -> dict:
     query = state['messages'][-1].content
     docs = retriever.retrieve(query)
@@ -37,20 +14,15 @@ def retrieval(state: AgentState) -> dict:
     return {"retrieved_docs": doc_contents}
 
 def response_generation(state: AgentState) -> dict:
-    mode = state['mode']
     retrieved_docs = state.get('retrieved_docs', [])
     messages = state['messages']
     
     context = "\n\n".join(retrieved_docs)
     
-    if mode == "code_review":
-        system_prompt = """You are a strict code reviewer specializing in coding standards. 
+    system_prompt = """You are a strict code reviewer specializing in coding standards. 
 Carefully analyze the provided code against the coding standards in the context.
 Be specific about violations and cite the relevant standards.
 Provide clear, actionable feedback."""
-    else:
-        system_prompt = """You are a helpful technical assistant with access to company documentation.
-Answer questions clearly and cite sources when using specific document information."""
 
     if context:
         system_prompt += f"\n\nContext:\n{context}"

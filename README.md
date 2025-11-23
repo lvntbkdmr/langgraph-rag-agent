@@ -4,8 +4,8 @@ A FastAPI-based intelligent agent using LangGraph and Qwen3 (via OpenAI-compatib
 
 ## Features
 
-- **Intelligent Agent**: Uses LangGraph to switch between general Q&A and specialized "Code Review" modes.
-- **RAG Capabilities**: Upload PDF and DOCX documents to build a knowledge base.
+- **Code Review Agent**: Specialized agent for strict code review against coding standards.
+- **RAG Capabilities**: Upload PDF and DOCX documents (coding standards, guidelines) to build a knowledge base.
 - **Vector Search**: Uses FAISS for efficient similarity search.
 - **FastAPI Server**: Provides REST endpoints for chat completions and document management.
 - **OpenAI Compatible**: The chat endpoint is compatible with OpenAI client libraries.

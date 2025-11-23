@@ -112,39 +112,22 @@ Create wrapper in `app/llm/qwen.py`:
 ### 5. LangGraph Agent Implementation
 
 **State Definition** (`app/agent/state.py`):
-
 - Define `AgentState` with TypedDict:
   - `messages`: List of chat messages
-  - `mode`: Detected mode ("general" or "code_review")
   - `retrieved_docs`: Retrieved document chunks
   - `final_answer`: Generated response
 
 **Agent Nodes** (`app/agent/nodes.py`):
 
-1. **Mode Detector Node**:
-
-   - Analyze the user's last message
-   - Use keywords/patterns to detect code review intent
-   - Keywords: "code review", "coding standard", "complies", "check function", "meets requirements"
-   - Set `state['mode']` accordingly
-
-2. **RAG Decision Node**:
-
-   - Decide if RAG is needed based on mode and query
-   - Code review mode: always use RAG
-   - General mode: optionally use RAG (or always for consistency)
-
-3. **Retrieval Node**:
+1. **Retrieval Node**:
 
    - Query FAISS with user's question
    - Retrieve top 3-5 relevant chunks
    - Store in `state['retrieved_docs']`
 
-4. **Response Generation Node**:
+2. **Response Generation Node**:
 
-   - Build prompt based on mode:
-     - **Code review mode**: "You are a strict code reviewer. Use the provided coding standards to evaluate the code. Be thorough and cite specific standards."
-     - **General mode**: "You are a helpful assistant. Use the provided context to answer questions."
+   - Build prompt for **Code Review**: "You are a strict code reviewer. Use the provided coding standards to evaluate the code. Be thorough and cite specific standards."
    - Include retrieved documents in context
    - Call Qwen3 LLM
    - Manage context window (32k tokens - reserve space for retrieved docs)
@@ -154,8 +137,7 @@ Create wrapper in `app/llm/qwen.py`:
 
 - Create StateGraph with conditional edges:
   ```
-  START → mode_detector → rag_decision → (if RAG needed) retrieval → response_generation → END
-                                       → (if no RAG) response_generation → END
+  START → retrieval → response_generation → END
   ```
 
 - Compile the graph
